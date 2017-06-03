@@ -11,7 +11,9 @@ LHOST = 'localhost'
 class TCPEchoHandler(SocketServer.StreamRequestHandler):
     def handle(self):
         self.DATA = self.request.recv(BUFFER_SIZE).strip()
-        print "[*] {0} wrote: {1}".format(self.client_address[0], self.DATA)
+        event = "[*] {0} wrote: {1}".format(self.client_address[0], self.DATA)
+        write_event_log_event(event)
+        print event
         self.request.sendall(self.DATA)
 
 
@@ -25,8 +27,9 @@ class HoneyPotHandler(Thread):
             server = SocketServer.TCPServer((LHOST, int(self.port)), TCPEchoHandler)
             print "[*] Echo handler started on {0}:{1}\n".format(LHOST, self.port)
             server.serve_forever()
-        except Exception as e:
-            print "[!] There was an error: {0} ".format(e)
+        except Exception as log_error:
+            print "[!] There was an error: {0} ".format(log_error)
+            write_error_log_event(log_error)
 
 
 def build_ports_list():
@@ -50,6 +53,20 @@ def build_pot():
         thread.start()
     for thread in thread_list:
         thread.join()
+
+
+def write_event_log_event(event):
+    # add datetime to log name
+    log_file = "event.log"
+    with open(log_file, 'a') as l:
+        l.write(event)
+
+
+def write_error_log_event(error):
+    # add datetime to log name
+    log_file = "error.log"
+    with open(log_file, 'a') as l:
+        l.write(error)
 
 
 def main():
