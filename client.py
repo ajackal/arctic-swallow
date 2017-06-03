@@ -16,6 +16,7 @@ s.connect((ip_addr, int(tcp_port)))
 
 try:
     s.send(message_to_server)
+    print "[*] sending: {0}".format(message_to_server)
 except socket.error as e:
     print e
 
