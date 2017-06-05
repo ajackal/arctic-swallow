@@ -5,7 +5,7 @@ from threading import Thread
 
 
 BUFFER_SIZE = 1024
-LHOST = '192.168.1.184'
+LHOST = 'localhost'
 
 
 class TCPEchoHandler(SocketServer.StreamRequestHandler):
@@ -22,11 +22,20 @@ class SMBHandler(SocketServer.StreamRequestHandler):
         # SMB HEADER
         # Server Component: SMB
         # SMB Command: Negotiate Protocol (0x72)
-        smb_header = "0xff0x530x4d0x420x72"
+        smb_header_negotiate = "0xff0x530x4d0x420x72"
+        # Session Setup: NT STATUS_SUCCESS
+        smb_header_session_setup = "0xff0x530x4d0x420x730x000x000x000x00"
+        # Session Setup: NT STATUS_ACCOUNT_DISABLED
+        smb_header_account_disabled = "0xff0x530x4d0x420x730x720x000x000xc0"
+        # Session close: NT STATUS_SUCCESS
+        smb_session_close = "0xff0x530x4d0x420x740x000x000x000x00"
         # SMB Response: Win10 Home
         # File to read binary from:
-        smb_response_file = "pcaps\\smb_response_win10"
-        with open(smb_response_file, 'rb') as f:
+        smb_negotiate_response = "pcaps\\smb_response_win10"
+        smb_session_startup_response = "pcaps\\smb_session_response_win10"
+        smb_account_disabled_response = "pcaps\\smb_account_disabled_response_win10"
+        smb_session_close_response = "pcaps\\smb_session_close_response"
+        with open(smb_negotiate_response, 'rb') as f:
             # Set variable with SMB response
             smb_response_win10_home = f.read()
         # Get DATA from socket
@@ -39,10 +48,20 @@ class SMBHandler(SocketServer.StreamRequestHandler):
             # Constructs hex bytes together in one string
             pkt_hex += pkt_hex_byte
         # Check DATA for SMB Header in Hex
-        if smb_header in pkt_hex:
-            # Send reponse if Header is found.
+        if smb_header_negotiate in pkt_hex:
+            # Send response if Header is found.
             self.request.sendall(smb_response_win10_home)
-
+        if smb_header_session_setup in pkt_hex:
+            # Send account disabled response to start up request.
+            self.request.sendall(smb_session_startup_response)
+        if smb_header_account_disabled in pkt_hex:
+            # Send LANMAN info to requester
+            self.request.sendall(smb_account_disabled_response)
+        if smb_session_close in pkt_hex:
+            # Send session close.
+            self.request.sendall(smb_session_close_response)
+        else:
+            self.request.sendall(self.DATA)
 
 
 class HoneyPotHandler(Thread):
