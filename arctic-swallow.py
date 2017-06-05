@@ -50,15 +50,19 @@ class SMBHandler(SocketServer.StreamRequestHandler):
         # Check DATA for SMB Header in Hex
         if smb_header_negotiate in pkt_hex:
             # Send response if Header is found.
+            print "[*] SMB Header detected."
             self.request.sendall(smb_response_win10_home)
         if smb_header_session_setup in pkt_hex:
             # Send account disabled response to start up request.
+            print "[*] SMB Session Setup request detected."
             self.request.sendall(smb_session_startup_response)
         if smb_header_account_disabled in pkt_hex:
             # Send LANMAN info to requester
+            print "[*] SMB Account Disabled response detected."
             self.request.sendall(smb_account_disabled_response)
         if smb_session_close in pkt_hex:
             # Send session close.
+            print "[*] SMB Session close detected."
             self.request.sendall(smb_session_close_response)
         else:
             self.request.sendall(self.DATA)
