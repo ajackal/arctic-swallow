@@ -1,0 +1,103 @@
+
+Starting Nmap 7.01 ( https://nmap.org ) at 2017-06-04 19:19 PDT
+NSE: Loaded 132 scripts for scanning.
+NSE: Script Pre-scanning.
+Initiating NSE at 19:19
+Completed NSE at 19:19, 0.00s elapsed
+Initiating NSE at 19:19
+Completed NSE at 19:19, 0.00s elapsed
+Initiating Ping Scan at 19:19
+Scanning 192.168.1.184 [2 ports]
+Completed Ping Scan at 19:19, 0.00s elapsed (1 total hosts)
+Initiating Parallel DNS resolution of 1 host. at 19:19
+Completed Parallel DNS resolution of 1 host. at 19:19, 0.02s elapsed
+Initiating Connect Scan at 19:19
+Scanning 192.168.1.184 [1000 ports]
+Discovered open port 443/tcp on 192.168.1.184
+Discovered open port 139/tcp on 192.168.1.184
+Discovered open port 135/tcp on 192.168.1.184
+Discovered open port 445/tcp on 192.168.1.184
+Discovered open port 902/tcp on 192.168.1.184
+Discovered open port 5357/tcp on 192.168.1.184
+Connect Scan Timing: About 28.42% done; ETC: 19:21 (0:01:18 remaining)
+Connect Scan Timing: About 51.24% done; ETC: 19:21 (0:00:58 remaining)
+Discovered open port 912/tcp on 192.168.1.184
+Connect Scan Timing: About 70.92% done; ETC: 19:21 (0:00:37 remaining)
+Completed Connect Scan at 19:21, 126.96s elapsed (1000 total ports)
+Initiating Service scan at 19:21
+Scanning 7 services on 192.168.1.184
+Completed Service scan at 19:22, 12.08s elapsed (7 services on 1 host)
+NSE: Script scanning 192.168.1.184.
+Initiating NSE at 19:22
+Completed NSE at 19:22, 14.86s elapsed
+Initiating NSE at 19:22
+Completed NSE at 19:22, 0.00s elapsed
+Nmap scan report for 192.168.1.184
+Host is up (1.0s latency).
+Not shown: 974 closed ports
+PORT      STATE    SERVICE         VERSION
+83/tcp    filtered mit-ml-dev
+135/tcp   open     msrpc           Microsoft Windows RPC
+139/tcp   open     netbios-ssn     Microsoft Windows 98 netbios-ssn
+443/tcp   open     ssl/http        VMware VirtualCenter Web service
+| http-methods: 
+|_  Supported Methods: GET HEAD POST
+|_http-title: Site doesn't have a title (text; charset=plain).
+| ssl-cert: Subject: commonName=VMware/countryName=US
+| Issuer: commonName=VMware/countryName=US
+| Public Key type: rsa
+| Public Key bits: 2048
+| Signature Algorithm: sha256WithRSAEncryption
+| Not valid before: 2017-04-30T16:49:53
+| Not valid after:  2018-04-30T16:49:53
+| MD5:   da81 9f8b d714 9e70 688d cb7c 2d92 3595
+|_SHA-1: e982 f6fc fe95 6069 a9ab 76cc 3fea bd2a ebec 0f45
+|_ssl-date: TLS randomness does not represent time
+445/tcp   open     microsoft-ds    Microsoft Windows 7 or 10 microsoft-ds
+514/tcp   filtered shell
+902/tcp   open     ssl/vmware-auth VMware Authentication Daemon 1.10 (Uses VNC, SOAP)
+912/tcp   open     vmware-auth     VMware Authentication Daemon 1.0 (Uses VNC, SOAP)
+1000/tcp  filtered cadlock
+1048/tcp  filtered neod2
+1164/tcp  filtered qsm-proxy
+1216/tcp  filtered etebac5
+1244/tcp  filtered isbconference1
+1900/tcp  filtered upnp
+2607/tcp  filtered connection
+4125/tcp  filtered rww
+5357/tcp  open     http            Microsoft HTTPAPI httpd 2.0 (SSDP/UPnP)
+|_http-server-header: Microsoft-HTTPAPI/2.0
+|_http-title: Service Unavailable
+5666/tcp  filtered nrpe
+6059/tcp  filtered X11:59
+6901/tcp  filtered jetstream
+7435/tcp  filtered unknown
+8651/tcp  filtered unknown
+8800/tcp  filtered sunwebadmin
+9101/tcp  filtered jetdirect
+18988/tcp filtered unknown
+20000/tcp filtered dnp
+Service Info: OSs: Windows, Windows 98; CPE: cpe:/o:microsoft:windows, cpe:/o:microsoft:windows_98, cpe:/o:microsoft:windows_7
+
+Host script results:
+| smb-os-discovery: 
+|   OS: Windows 10 Home 15063 (Windows 10 Home 6.3)
+|   OS CPE: cpe:/o:microsoft:windows_10::-
+|   NetBIOS computer name: LAPTOP-0745I8VG
+|   Workgroup: WORKGROUP
+|_  System time: 2017-06-04T22:22:33-04:00
+| smb-security-mode: 
+|   account_used: guest
+|   authentication_level: user
+|   challenge_response: supported
+|_  message_signing: disabled (dangerous, but default)
+|_smbv2-enabled: Server supports SMBv2 protocol
+
+NSE: Script Post-scanning.
+Initiating NSE at 19:22
+Completed NSE at 19:22, 0.00s elapsed
+Initiating NSE at 19:22
+Completed NSE at 19:22, 0.00s elapsed
+Read data files from: /usr/bin/../share/nmap
+Service detection performed. Please report any incorrect results at https://nmap.org/submit/ .
+Nmap done: 1 IP address (1 host up) scanned in 156.06 seconds
