@@ -31,10 +31,10 @@ class SMBHandler(SocketServer.StreamRequestHandler):
         smb_session_close = "0xff0x530x4d0x420x740x000x000x000x00"
         # SMB Response: Win10 Home
         # File to read binary from:
-        smb_negotiate_response = "pcaps\\smb_response_win10"
-        smb_session_startup_response = "pcaps\\smb_session_response_win10"
-        smb_account_disabled_response = "pcaps\\smb_account_disabled_response_win10"
-        smb_session_close_response = "pcaps\\smb_session_close_response"
+        smb_negotiate_response = "pcaps/smb_response_win10"
+        smb_session_startup_response = "pcaps/smb_session_response_win10"
+        smb_account_disabled_response = "pcaps/smb_account_disabled_response_win10"
+        smb_session_close_response = "pcaps/smb_session_close_response"
         with open(smb_negotiate_response, 'rb') as f:
             # Set variable with SMB response
             smb_response_win10_home = f.read()
@@ -74,13 +74,13 @@ class HoneyPotHandler(Thread):
         self.port = port
 
     def run(self):
-        if self.port is 8445:
+        if self.port == '8445':
             x = SMBHandler
         else:
             x = TCPEchoHandler
         try:
             server = SocketServer.TCPServer((LHOST, int(self.port)), x)
-            print "[*] Echo handler started on {0}:{1}\n".format(LHOST, self.port)
+            print "[*] {0} handler started on {1}:{2}\n".format(x, LHOST, self.port)
             server.serve_forever()
         except Exception as log_error:
             print "[!] There was an error: {0} ".format(log_error)
