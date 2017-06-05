@@ -2,7 +2,7 @@
 import SocketServer
 import sys
 from threading import Thread
-import scapy
+
 
 BUFFER_SIZE = 1024
 LHOST = '192.168.1.184'
