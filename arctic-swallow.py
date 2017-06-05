@@ -17,14 +17,24 @@ class TCPEchoHandler(SocketServer.StreamRequestHandler):
         self.request.sendall(self.DATA)
 
 
+class SMBHandler(SocketServer.StreamRequestHandler):
+    def handle(self):
+        self.DATA = self.request.recv(BUFFER_SIZE).strip()
+        # TODO: finish SMB handler.
+
+
 class HoneyPotHandler(Thread):
     def __init__(self, port):
         Thread.__init__(self)
         self.port = port
 
     def run(self):
+        if self.port is 445:
+            x = SMBHandler
+        else:
+            x = TCPEchoHandler
         try:
-            server = SocketServer.TCPServer((LHOST, int(self.port)), TCPEchoHandler)
+            server = SocketServer.TCPServer((LHOST, int(self.port)), x)
             print "[*] Echo handler started on {0}:{1}\n".format(LHOST, self.port)
             server.serve_forever()
         except Exception as log_error:
