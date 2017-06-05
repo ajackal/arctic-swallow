@@ -2,10 +2,10 @@
 import SocketServer
 import sys
 from threading import Thread
-
+import scapy
 
 BUFFER_SIZE = 1024
-LHOST = 'localhost'
+LHOST = '192.168.1.184'
 
 
 class TCPEchoHandler(SocketServer.StreamRequestHandler):
@@ -19,8 +19,30 @@ class TCPEchoHandler(SocketServer.StreamRequestHandler):
 
 class SMBHandler(SocketServer.StreamRequestHandler):
     def handle(self):
+        # SMB HEADER
+        # Server Component: SMB
+        # SMB Command: Negotiate Protocol (0x72)
+        smb_header = "0xff0x530x4d0x420x72"
+        # SMB Response: Win10 Home
+        # File to read binary from:
+        smb_response_file = "pcaps\\smb_response_win10"
+        with open(smb_response_file, 'rb') as f:
+            # Set variable with SMB response
+            smb_response_win10_home = f.read()
+        # Get DATA from socket
         self.DATA = self.request.recv(BUFFER_SIZE).strip()
-        # TODO: finish SMB handler.
+        # Convert DATA to hex
+        pkt_hex = ""
+        for i in self.DATA:
+            # Converts each byte to hex
+            pkt_hex_byte = hex(ord(i))
+            # Constructs hex bytes together in one string
+            pkt_hex += pkt_hex_byte
+        # Check DATA for SMB Header in Hex
+        if smb_header in pkt_hex:
+            # Send reponse if Header is found.
+            self.request.sendall(smb_response_win10_home)
+
 
 
 class HoneyPotHandler(Thread):
@@ -29,7 +51,7 @@ class HoneyPotHandler(Thread):
         self.port = port
 
     def run(self):
-        if self.port is 445:
+        if self.port is 8445:
             x = SMBHandler
         else:
             x = TCPEchoHandler
