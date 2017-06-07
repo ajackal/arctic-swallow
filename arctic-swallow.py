@@ -2,7 +2,7 @@
 import SocketServer
 import sys
 from threading import Thread
-
+import binascii
 
 BUFFER_SIZE = 1024
 LHOST = 'localhost'
@@ -10,11 +10,16 @@ LHOST = 'localhost'
 
 class TCPEchoHandler(SocketServer.StreamRequestHandler):
     def handle(self):
-        self.DATA = self.request.recv(BUFFER_SIZE).strip()
-        event = "[*] {0} wrote: {1}".format(self.client_address[0], self.DATA)
-        write_event_log_event(event)
-        print event
-        self.request.sendall(self.DATA)
+        try:
+            self.DATA = self.request.recv(BUFFER_SIZE).strip()
+            event = "[*] {0} wrote: {1}".format(self.client_address[0], self.DATA)
+            write_event_log_event(event)
+            print event
+            self.request.sendall(self.DATA)
+        except Exception as error:
+            log_error = "[!] Error receiving data from socket with {0} : {1}".format(self.client_address[0], error)
+            print log_error
+            write_error_log_event(str(log_error))
 
 
 class SMBHandler(SocketServer.StreamRequestHandler):
@@ -22,13 +27,13 @@ class SMBHandler(SocketServer.StreamRequestHandler):
         # SMB HEADER
         # Server Component: SMB
         # SMB Command: Negotiate Protocol (0x72)
-        smb_header_negotiate = "0xff0x530x4d0x420x72"
+        smb_header_negotiate = "\xff\x53\x4d\x42\x72"
         # Session Setup: NT STATUS_SUCCESS
-        smb_header_session_setup = "0xff0x530x4d0x420x730x000x000x000x00"
+        smb_header_session_setup = "\xff\x53\x4d\x42\x73\x00\x00\x00\x00"
         # Session Setup: NT STATUS_ACCOUNT_DISABLED
-        smb_header_account_disabled = "0xff0x530x4d0x420x730x720x000x000xc0"
+        smb_header_account_disabled = "\xff\x53\x4d\x42\x73\x72\x00\x00\xc0"
         # Session close: NT STATUS_SUCCESS
-        smb_session_close = "0xff0x530x4d0x420x740x000x000x000x00"
+        smb_session_close = "\xff\x53\x4d\x42\x74\x00\x00\x00\x00"
         # SMB Response: Win10 Home
         # File to read binary from:
         smb_negotiate_response = "pcaps/smb_response_win10"
@@ -42,56 +47,51 @@ class SMBHandler(SocketServer.StreamRequestHandler):
             pkt_hex = ""
             for i in self.DATA:
                 # Converts each byte to hex
-                pkt_hex_byte = hex(ord(i))
+                pkt_hex_byte = binascii.hexlify(i)
                 # Constructs hex bytes together in one string
-                pkt_hex += pkt_hex_byte
+                pkt_hex += "\\x" + pkt_hex_byte
             # Check DATA for SMB Header in Hex
-            if smb_header_negotiate in pkt_hex:
+            if pkt_hex.find(smb_header_negotiate):
                 # Send response if Header is found.
-                event = "[*] SMB Header - Negotiate Session was detected from{0}".format(\
-                    self.client_address[0])
+                event = "[*] SMB Header - Negotiate Session was detected from {0}".format(self.client_address[0])
                 print event
                 write_event_log_event(event)
                 response_file = smb_negotiate_response
                 self.send_response(response_file)
-            if smb_header_session_setup in pkt_hex:
+            if pkt_hex.find(smb_header_session_setup):
                 # Send account disabled response to start up request.
-                event = "[*] SMB Header - Session Setup detected from {0}".format(\
-                    self.client_address[0]) 
+                event = "[*] SMB Header - Session Setup detected from {0}".format(self.client_address[0])
                 print event
                 write_event_log_event(event)
                 response_file = smb_session_startup_response
                 self.send_response(response_file)
-            if smb_header_account_disabled in pkt_hex:
+            if pkt_hex.find(smb_header_account_disabled):
                 # Send LANMAN info to requester
-                event = "[*] SMB Header - LANMAN information requested from {0}\
-                ".format(self.client_address[0])
+                event = "[*] SMB Header - LANMAN information requested from {0}".format(self.client_address[0])
                 print event
                 write_event_log_event(event)
-                response_file = smb_account_disabled_repsonse
+                response_file = smb_account_disabled_response
                 self.send_response(response_file)
-            if smb_session_close in pkt_hex:
+            if pkt_hex.find(smb_session_close):
                 # Send session close.
-                event  = "[*] SMB Header - Session Close detected from {0}".format(\
-                    self.client_address[0])
+                event = "[*] SMB Header - Session Close detected from {0}".format(self.client_address[0])
                 print event
                 write_event_log_event(event)
-                response_file = smb_close_response
+                response_file = smb_session_close_response
                 self.send_response(response_file)
             else:
                 self.request.sendall(self.DATA)
-        except Exception as log_error:
-            log_error = "[!] Error receiving data from socket with {0} because {1}".format(\
-                self.client_address[0], error)
+        except Exception as error:
+            log_error = "[!] Error receiving data from socket with {0} : {1}".format(self.client_address[0], error)
             print log_error
             write_error_log_event(str(log_error))
 
-
     def send_response(self, response_file):
-        self.response_file = response_file
-        with open(self.response_file, 'rb') as f:
+        # self.response_file = response_file
+        with open(response_file, 'rb') as f:
             response = f.read()
         self.request.sendall(response)
+        print "[*] Repsonse packet sent."
 
 
 class HoneyPotHandler(Thread):
@@ -111,8 +111,7 @@ class HoneyPotHandler(Thread):
             write_event_log_event(event)
             server.serve_forever()
         except Exception as error:
-            error = "[!] There was an error establishing a handler because {0}".format(\
-                                                                                error)
+            error = "[!] There was an error establishing a handler because {0}".format(error)
             print error
             write_error_log_event(error)
 
