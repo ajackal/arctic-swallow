@@ -1,4 +1,3 @@
-
 import SocketServer
 import sys
 from threading import Thread
@@ -28,17 +27,41 @@ class SMBHandler(SocketServer.StreamRequestHandler):
         # Server Component: SMB
         # SMB Command: Negotiate Protocol (0x72)
         smb_header_negotiate = "\xff\x53\x4d\x42\x72"
+        # SMB Header NMAP request all Dialects:
+        smb_nmap_all_dialects = "pcaps/smb_nmap_all_dialects"
+        with open(smb_nmap_all_dialects, 'rb') as f:
+            smb_nmap_all_dialects_bytes = f.read()
+            pkt_hex_nmap_dialects = ""
+            for i in smb_nmap_all_dialects_bytes:
+                pkt_hex = binascii.hexlify(i)
+                pkt_hex_nmap_dialects += "\\x" + pkt_hex
+        # SMB Session Setup andX Request: \guest
+        smb_nmap_setup_andx = "pcaps/smb_nmap_guest_connect"
+        with open(smb_nmap_setup_andx, 'rb') as f:
+            smb_nmap_guest_connect_bytes = f.read()
+            pkt_hex_nmap_guest_connect = ""
+            for i in smb_nmap_guest_connect_bytes:
+                pkt_hex = binascii.hexlify(i)
+                pkt_hex_nmap_guest_connect += "\\x" + pkt_hex
+        # SMB Negotiate Request NTLM 0.12
+        smb_negotiate_ntlm = "\x02\x4e\x54\x20\x4c\x4d\x20\x30\x2e\x31\x32\x00"
         # Session Setup: NT STATUS_SUCCESS
         smb_header_session_setup = "\xff\x53\x4d\x42\x73\x00\x00\x00\x00"
         # Session Setup: NT STATUS_ACCOUNT_DISABLED
         smb_header_account_disabled = "\xff\x53\x4d\x42\x73\x72\x00\x00\xc0"
+        # Session Setup: NTLMSSP
+        smb_negotiate_ntlmssp = "\x4e\x54\x4c\x4d\x53\x53\x50\x00"
         # Session close: NT STATUS_SUCCESS
         smb_session_close = "\xff\x53\x4d\x42\x74\x00\x00\x00\x00"
         # SMB Response: Win10 Home
         # File to read binary from:
         smb_negotiate_response = "pcaps/smb_response_win10"
+        # smb_negotiate_ntlm_response = "pcaps/smb_ntlm_response_win10"
+        smb_negotiate_ntlm_response = "pcaps/smb_negotiate_ntlm_workgroup"
         smb_session_startup_response = "pcaps/smb_session_response_win10"
+        smb_nmap_guest_connect_response = "pcaps/smb_nmap_guest_connect"
         smb_account_disabled_response = "pcaps/smb_account_disabled_response_win10"
+        smb_negotiate_ntlmssp_response = "pcaps/smb_ntlmssp_response_win10"
         smb_session_close_response = "pcaps/smb_session_close_response"
         # Get DATA from socket
         try:
@@ -52,19 +75,39 @@ class SMBHandler(SocketServer.StreamRequestHandler):
                 pkt_hex += "\\x" + pkt_hex_byte
             # Check DATA for SMB Header in Hex
             if pkt_hex.find(smb_header_negotiate):
-                # Send response if Header is found.
-                event = "[*] SMB Header - Negotiate Session was detected from {0}".format(self.client_address[0])
-                print event
-                write_event_log_event(event)
-                response_file = smb_negotiate_response
-                self.send_response(response_file)
+                if pkt_hex.find(pkt_hex_nmap_dialects):
+                    event = "[*] SMB Header - NMAP request for all dialects from {0}".format(self.client_address[0])
+                    write_event_log_event(event)
+                    response_file = smb_negotiate_response
+                    self.send_response(response_file)
+                if pkt_hex.find(smb_negotiate_ntlm):
+                    event = "[*] SMB Header - Negotiate Session NTLM detected from {0}".format(self.client_address[0])
+                    write_event_log_event(event)
+                    response_file = smb_negotiate_ntlm_response
+                    self.send_response(response_file)
+                else:
+                    # Send response if Header is found.
+                    event = "[*] SMB Header - Negotiate Session was detected from {0}".format(self.client_address[0])
+                    write_event_log_event(event)
+                    response_file = smb_negotiate_response
+                    self.send_response(response_file)
             if pkt_hex.find(smb_header_session_setup):
-                # Send account disabled response to start up request.
-                event = "[*] SMB Header - Session Setup detected from {0}".format(self.client_address[0])
-                print event
-                write_event_log_event(event)
-                response_file = smb_session_startup_response
-                self.send_response(response_file)
+                if pkt_hex.find(pkt_hex_nmap_guest_connect):
+                    event = "[*] SMB Header - Session Setup andX detected from {0}".format(self.client_address[0])
+                    write_event_log_event(event)
+                    response_file = smb_nmap_guest_connect_response
+                    self.send_response(response_file)
+                if pkt_hex.find(smb_negotiate_ntlmssp):
+                    event = "[*] SMB Header - Session Startup NTLMSSP detected from {0}".format(self.client_address[0])
+                    write_event_log_event(event)
+                    response_file = smb_negotiate_ntlmssp_response
+                    self.send_response(response_file)
+                else:
+                    # Send account disabled response to start up request.
+                    event = "[*] SMB Header - Session Setup detected from {0}".format(self.client_address[0])
+                    write_event_log_event(event)
+                    response_file = smb_session_startup_response
+                    self.send_response(response_file)
             if pkt_hex.find(smb_header_account_disabled):
                 # Send LANMAN info to requester
                 event = "[*] SMB Header - LANMAN information requested from {0}".format(self.client_address[0])
@@ -91,7 +134,7 @@ class SMBHandler(SocketServer.StreamRequestHandler):
         with open(response_file, 'rb') as f:
             response = f.read()
         self.request.sendall(response)
-        print "[*] Repsonse packet sent."
+        print "[*] Response packet sent."
 
 
 class HoneyPotHandler(Thread):
@@ -131,6 +174,11 @@ def build_ports_list():
 def build_pot():
     thread_list = []
     for port in ports:
+        if int(port) < 1024:
+            if int(port) < 100:
+                port = "80" + port
+            else:
+                port = "8" + port
         event = "[*] Starting handler on port {0}".format(port)
         print event
         write_event_log_event(event)
@@ -144,6 +192,7 @@ def build_pot():
 
 def write_event_log_event(event):
     # add datetime to log name
+    print event
     log_file = "event.log"
     with open(log_file, 'a') as l:
         l.write(event + "\n")

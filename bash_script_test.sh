@@ -13,10 +13,9 @@ value=$(<ports.txt)
 echo $value
 for i in $value; do
     if [ $i -le 100 ]; then
-    i=80$i;
-    echo $i;
+    p=80$i;
     else
-        i=8$i;
-        echo $i;
+        p=8$i;
     fi
+echo $i $p
 done
