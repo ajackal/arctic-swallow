@@ -21,6 +21,28 @@ class TCPEchoHandler(SocketServer.StreamRequestHandler):
             write_error_log_event(str(log_error))
 
 
+class TelnetHandler(SocketServer.StreamRequestHandler):
+    def handle(self):
+        telnet_xp_response_bin = "pcaps/telnet_xp_response"
+        try:
+            self.DATA = self.request.recv(BUFFER_SIZE).strip()
+            event = "[*] {0} wrote over Port 23: {1}".format(self.client_address[0], self.DATA)
+            write_event_log_event(event)
+            response_file = telnet_xp_response_bin
+            self.send_response(response_file)
+            # self.request.sendall("login: ")
+        except Exception as error:
+            log_error = "[!] Error receiving data from socket with {0} : {1}".format(self.client_address[0], error)
+            print log_error
+            write_error_log_event(str(log_error))
+
+    def send_response(self, response_file):
+        with open(response_file, 'rb') as f:
+            response = f.read()
+        self.request.sendall(response)
+        print "[*] Response packet sent."
+
+
 class SMBHandler(SocketServer.StreamRequestHandler):
     def handle(self):
         # SMB HEADER
@@ -55,6 +77,7 @@ class SMBHandler(SocketServer.StreamRequestHandler):
         smb_session_close = "\xff\x53\x4d\x42\x74\x00\x00\x00\x00"
         # SMB Response: Win10 Home
         # File to read binary from:
+        #if win_ver == "10":
         smb_negotiate_response = "pcaps/smb_response_win10"
         # smb_negotiate_ntlm_response = "pcaps/smb_ntlm_response_win10"
         smb_negotiate_ntlm_response = "pcaps/smb_negotiate_ntlm_workgroup"
@@ -63,6 +86,8 @@ class SMBHandler(SocketServer.StreamRequestHandler):
         smb_account_disabled_response = "pcaps/smb_account_disabled_response_win10"
         smb_negotiate_ntlmssp_response = "pcaps/smb_ntlmssp_response_win10"
         smb_session_close_response = "pcaps/smb_session_close_response"
+        #if win_ver == "vista":
+
         # Get DATA from socket
         try:
             self.DATA = self.request.recv(BUFFER_SIZE).strip()
@@ -145,17 +170,17 @@ class HoneyPotHandler(Thread):
     def run(self):
         if self.port == '8445':
             x = SMBHandler
+        elif self.port == '8023':
+            x = TelnetHandler
         else:
             x = TCPEchoHandler
         try:
             server = SocketServer.TCPServer((LHOST, int(self.port)), x)
             event = "[*] {0} handler started on {1}:{2}".format(x, LHOST, self.port)
-            print event
             write_event_log_event(event)
             server.serve_forever()
         except Exception as error:
             error = "[!] There was an error establishing a handler because {0}".format(error)
-            print error
             write_error_log_event(error)
 
 
@@ -200,6 +225,7 @@ def write_event_log_event(event):
 
 def write_error_log_event(error):
     # add datetime to log name
+    print error
     log_file = "error.log"
     with open(log_file, 'a') as l:
         l.write(error + "\n")
