@@ -14,11 +14,12 @@ for i in $value; do
         p=$i
     fi
     if [ $p -eq $i ]; then
-        sudo iptables -t nat -A PREROUTING -p tcp --dport $p -j ACCEPT
-        sudo iptables -t nat -A OUTPUT -p tcp --dport $p -j ACCEPT
+        echo "[!] Non-privelaged port, no forwarding necessary " $p
     else
         sudo iptables -t nat -A PREROUTING -p tcp --dport $i -j REDIRECT --to-port $p
         sudo iptables -t nat -A OUTPUT -p tcp --dport $i -j REDIRECT --to-port $p
     fi
+#    sudo iptables -t nat -A PREROUTING -p tcp --dport $i -j REDIRECT --to-port $p
+#    sudo iptables -t nat -A OUTPUT -p tcp --dport $i -j REDIRECT --to-port $p
 done
 sudo iptables -t nat -S

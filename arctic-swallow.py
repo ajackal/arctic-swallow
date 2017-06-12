@@ -43,6 +43,48 @@ class TelnetHandler(SocketServer.StreamRequestHandler):
         print "[*] Response packet sent."
 
 
+class NetBiosHandler(SocketServer.StreamRequestHandler):
+    def handle(self):
+        netbios_error_bin = "pcaps/netbios_error"
+        try:
+            self.DATA = self.request.recv(BUFFER_SIZE).strip()
+            event = "[*] {0} wrote over Port 139: {1}".format(self.client_address[0], self.DATA)
+            write_event_log_event(event)
+            response_file = netbios_error_bin
+            self.send_response(response_file)
+        except Exception as error:
+            log_error = "[!] Error receiving data from socket with {0} : {1}".format(self.client_address[0], error)
+            print log_error
+            write_error_log_event(str(log_error))
+
+    def send_response(self, response_file):
+        with open(response_file, 'rb') as f:
+            response = f.read()
+        self.request.sendall(response)
+        print "[*] Response packet sent."
+
+
+class MsrpcHandler(SocketServer.StreamRequestHandler):
+    def handle(self):
+        msrpc_error_bin = "pcaps/msrpc_error"
+        try:
+            self.DATA = self.request.recv(BUFFER_SIZE).strip()
+            event = "[*] {0} wrote over Port: {1}".format(self.client_address[0], self.DATA)
+            write_event_log_event(event)
+            response_file = msrpc_error_bin
+            self.send_response(response_file)
+        except Exception as error:
+            log_error = "[!] Error receiving data from socket with {0} : {1}".format(self.client_address[0], error)
+            print log_error
+            write_error_log_event(str(log_error))
+
+    def send_response(self, response_file):
+        with open(response_file, 'rb') as f:
+            response = f.read()
+        self.request.sendall(response)
+        print "[*] Response packet sent."
+
+
 class SMBHandler(SocketServer.StreamRequestHandler):
     def handle(self):
         # SMB HEADER
@@ -166,17 +208,23 @@ class HoneyPotHandler(Thread):
     def __init__(self, port):
         Thread.__init__(self)
         self.port = port
+        self.msrpc_ports = ['8135', '49152', '49153', '49154', '49155']
+        # TODO: set if statement to bind ports > 1024 to ip.addr not localhost
 
     def run(self):
         if self.port == '8445':
             x = SMBHandler
         elif self.port == '8023':
             x = TelnetHandler
+        elif self.port in self.msrpc_ports:
+            x = MsrpcHandler
+        elif self.port == '8139':
+            x = NetBiosHandler
         else:
             x = TCPEchoHandler
         try:
             server = SocketServer.TCPServer((LHOST, int(self.port)), x)
-            event = "[*] {0} handler started on {1}:{2}".format(x, LHOST, self.port)
+            event = "[*] {0} handler started on {1}:{2}".format(str(x), LHOST, self.port)
             write_event_log_event(event)
             server.serve_forever()
         except Exception as error:
@@ -205,7 +253,6 @@ def build_pot():
             else:
                 port = "8" + port
         event = "[*] Starting handler on port {0}".format(port)
-        print event
         write_event_log_event(event)
         t = HoneyPotHandler(port)
         thread_list.append(t)
