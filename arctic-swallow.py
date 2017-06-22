@@ -2,9 +2,10 @@ import SocketServer
 import sys
 from threading import Thread
 import binascii
+from termcolor import colored
+import colorama
 
 BUFFER_SIZE = 1024
-LHOST = 'localhost'
 
 
 class TCPEchoHandler(SocketServer.StreamRequestHandler):
@@ -119,7 +120,7 @@ class SMBHandler(SocketServer.StreamRequestHandler):
         smb_session_close = "\xff\x53\x4d\x42\x74\x00\x00\x00\x00"
         # SMB Response: Win10 Home
         # File to read binary from:
-        #if win_ver == "10":
+        # if win_ver == "10":
         smb_negotiate_response = "pcaps/smb_response_win10"
         # smb_negotiate_ntlm_response = "pcaps/smb_ntlm_response_win10"
         smb_negotiate_ntlm_response = "pcaps/smb_negotiate_ntlm_workgroup"
@@ -128,7 +129,7 @@ class SMBHandler(SocketServer.StreamRequestHandler):
         smb_account_disabled_response = "pcaps/smb_account_disabled_response_win10"
         smb_negotiate_ntlmssp_response = "pcaps/smb_ntlmssp_response_win10"
         smb_session_close_response = "pcaps/smb_session_close_response"
-        #if win_ver == "vista":
+        # if win_ver == "vista":
 
         # Get DATA from socket
         try:
@@ -209,7 +210,7 @@ class HoneyPotHandler(Thread):
         Thread.__init__(self)
         self.port = port
         self.msrpc_ports = ['8135', '49152', '49153', '49154', '49155']
-        # TODO: set if statement to bind ports > 1024 to ip.addr not localhost
+
 
     def run(self):
         if self.port == '8445':
@@ -223,6 +224,10 @@ class HoneyPotHandler(Thread):
         else:
             x = TCPEchoHandler
         try:
+            if int(self.port) < 1024:
+                LHOST = 'localhost'
+            else:
+                LHOST = sys.argv[2]
             server = SocketServer.TCPServer((LHOST, int(self.port)), x)
             event = "[*] {0} handler started on {1}:{2}".format(str(x), LHOST, self.port)
             write_event_log_event(event)
@@ -278,11 +283,26 @@ def write_error_log_event(error):
         l.write(error + "\n")
 
 
+def print_usage():
+    print "arctic-swallow.py {0} {1}".format(colored('<ports.txt>', 'red'), colored('<IP-address>', 'yellow'))
+    print "\t{0} = text file with ports listed, one per line".format(colored('<ports.txt>', 'red'))
+    print "\t{0} = IP Address to listen on for non-privileged ports.".format(colored('<IP-address>', 'yellow'))
+    exit(0)
+
+
 def main():
-    print "[*] Building ports list for handlers."
-    build_ports_list()
-    print "[*] Starting handlers."
-    build_pot()
+    colorama.init()
+    try:
+        sys.argv[1]
+    except IndexError:
+        print_usage()
+    if sys.argv[1] == "?":
+        print_usage()
+    else:
+        print "[*] Building ports list for handlers."
+        build_ports_list()
+        print "[*] Starting handlers."
+        build_pot()
 
 if __name__ == "__main__":
     main()
