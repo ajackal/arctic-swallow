@@ -120,12 +120,12 @@ class SMBHandler(SocketServer.StreamRequestHandler):
         Session Setup: NTLMSSP
         Session close: NT STATUS_SUCCESS
         """
-        smb_header = {"header":"\xff\x53\x4d\x42\x72",
-                      "negotiate_ntlm":"\x02\x4e\x54\x20\x4c\x4d\x20\x30\x2e\x31\x32\x00",
-                      "session_setup":"\xff\x53\x4d\x42\x73\x00\x00\x00\x00",
-                      "account_disabled":"\xff\x53\x4d\x42\x73\x72\x00\x00\xc0",
-                      "negotiate_ntlmssp":"\x4e\x54\x4c\x4d\x53\x53\x50\x00",
-                      "session_close":"\xff\x53\x4d\x42\x74\x00\x00\x00\x00"
+        smb_header = {"header": "\xff\x53\x4d\x42\x72",
+                      "negotiate_ntlm": "\x02\x4e\x54\x20\x4c\x4d\x20\x30\x2e\x31\x32\x00",
+                      "session_setup": "\xff\x53\x4d\x42\x73\x00\x00\x00\x00",
+                      "account_disabled": "\xff\x53\x4d\x42\x73\x72\x00\x00\xc0",
+                      "negotiate_ntlmssp": "\x4e\x54\x4c\x4d\x53\x53\x50\x00",
+                      "session_close": "\xff\x53\x4d\x42\x74\x00\x00\x00\x00"
                      }
         # SMB Header NMAP request all Dialects:
         smb_nmap_all_dialects = "pcaps/smb_nmap_all_dialects"
@@ -145,13 +145,13 @@ class SMBHandler(SocketServer.StreamRequestHandler):
                 pkt_hex_nmap_guest_connect += "\\x" + pkt_hex
                 # SMB Response: Win10 Home
         # File to read binary from:
-        smb_response = {"negotiate_reponse":"pcaps/smb_response_win10",
-                        "negotiate_ntlm":"pcaps/smb_negotiate_ntlm_workgroup",
-                        "session_startup":"pcaps/smb_session_response_win10",
-                        "guest_connect":"pcaps/smb_nmap_guest_connect",
-                        "account_disabled":"pcaps/smb_account_disabled_response_win10",
-                        "negotiate_ntlm_win10":"pcaps/smb_ntlmssp_response_win10",
-                        "session_close":"pcaps/smb_session_close_response"
+        smb_response = {"negotiate_response": "pcaps/smb_response_win10",
+                        "negotiate_ntlm": "pcaps/smb_negotiate_ntlm_workgroup",
+                        "session_startup": "pcaps/smb_session_response_win10",
+                        "guest_connect": "pcaps/smb_nmap_guest_connect",
+                        "account_disabled": "pcaps/smb_account_disabled_response_win10",
+                        "negotiate_ntlm_win10": "pcaps/smb_ntlmssp_response_win10",
+                        "session_close": "pcaps/smb_session_close_response"
                        }
         # smb_negotiate_ntlm_response = "pcaps/smb_ntlm_response_win10"
         try:
@@ -210,9 +210,8 @@ class SMBHandler(SocketServer.StreamRequestHandler):
                     with {0} : {1}".format(self.client_address[0], error)
             write_error_log_event(str(log_error))
 
-
     def handle(self):
-        """ Main methos in the SMB Handler
+        """ Main methods in the SMB Handler
         1. reads the inbound request from the client
         2. determines the SMB request type by reading the SMB header
         3. defines the appropriate response and file
@@ -234,7 +233,6 @@ class SMBHandler(SocketServer.StreamRequestHandler):
             log_error = "[!] Error receiving data from socket \
                     with {0} : {1}".format(self.client_address[0], error)
             write_error_log_event(str(log_error))
-
 
     def send_response(self, response_file):
         """ Send Response
@@ -261,7 +259,6 @@ class HoneyPotHandler(Thread):
         Thread.__init__(self)
         self.port = port
         self.msrpc_ports = ['8135', '49152', '49153', '49154', '49155']
-
 
     def run(self):
         if self.port == '8445':
@@ -355,15 +352,15 @@ def print_usage():
         1. No argument for the ports list is given.
         2. User inputs "?" option.
     """
-    print "arctic-swallow.py {0} {1}".format(colored('<ports.txt>', 'red'), \
+    print "arctic-swallow.py {0} {1}".format(colored('<ports.txt>', 'red'),
                                             colored('<IP-address>', 'yellow'))
     print "\t{0} = text file with ports listed, one per line".format(colored('<ports.txt>', 'red'))
-    print "\t[!] Don't forget to set up port forwarding with {0}".format(colored("'ipt_config.sh'",\
+    print "\t[!] Don't forget to set up port forwarding with {0}".format(colored("'ipt_config.sh'",
                                                                                 'green'))
-    print "\t[!] Don't forget to set up {0} for full packet capture!".format(colored("TCPDUMP",\
+    print "\t[!] Don't forget to set up {0} for full packet capture!".format(colored("TCPDUMP",
                                                                              'yellow'))
     # don't think we need this options.
-    # iptables will foward from all IPs to localhost with one honeypot running
+    # iptables will forward from all IPs to localhost with one honeypot running
     # print "\t{0} = IP Address to listen on for \
     #        non-privileged ports.".format(colored('<IP-address>', 'yellow'))
     exit(0)
