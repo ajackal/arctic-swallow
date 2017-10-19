@@ -9,10 +9,13 @@ import colorama
 BUFFER_SIZE = 1024
 
 
-class TCPEchoHandler(SocketServer.StreamRequestHandler):
+class TCPEchoHandler(SocketServer.StreamRequestHandler, HoneyPot):
     """ TCP Echo Handler listens on any port not previously listed.
     It simply echos any data that it receives back to the client.
     """
+    def __init__(self):
+        super(TCPEchoHandler, self).__init__()
+
     def handle(self):
         try:
             self.DATA = self.request.recv(BUFFER_SIZE).strip()
@@ -186,11 +189,13 @@ class SMBHandler(SocketServer.StreamRequestHandler):
             if pkt_hex.find(smb_header['account_disabled']):
                 # Send LANMAN info to requester
                 event = "[*] SMB Header - LANMAN information requested from {0}".format(self.client_address[0])
+                print event
                 self.write_event_log_event(event)
                 self.send_response(smb_response['account_disabled'])
             if pkt_hex.find(smb_header['session_close']):
                 # Send session close.
                 event = "[*] SMB Header - Session Close detected from {0}".format(self.client_address[0])
+                print event
                 self.write_event_log_event(event)
                 self.send_response(smb_response['session_close'])
             else:
@@ -276,6 +281,11 @@ class HoneyPotHandler(Thread):
             error = "[!] There was an error establishing a handler because {0}".format(error)
             self.write_error_log_event(error)
 
+
+class HoneyPot:
+    def __init__(self):
+        self.x = 0
+
     def build_ports_list(self):
         """Build Ports List
         1. reads input file given
@@ -314,7 +324,6 @@ class HoneyPotHandler(Thread):
         for thread in thread_list:
             thread.join()
 
-    @staticmethod
     def write_event_log_event(event):
         """ Writes all events to 'event.log' with date & time. """
         log_time = str(datetime.now())
@@ -323,7 +332,6 @@ class HoneyPotHandler(Thread):
         with open(log_file, 'a') as event_log:
             event_log.write(log_time + event + "\n")
 
-    @staticmethod
     def write_error_log_event(error):
         """ Writes all errors to 'error.log' with date & time. """
         log_time = str(datetime.now())
@@ -332,7 +340,6 @@ class HoneyPotHandler(Thread):
         with open(log_file, 'a') as error_log:
             error_log.write(log_time + error + "\n")
 
-    @staticmethod
     def print_usage():
         """ Prints the program usage when:
             1. No argument for the ports list is given.
@@ -358,20 +365,21 @@ def main():
     4. builds and runs the honey pot.
     """
     colorama.init()
+    hp = HoneyPot()
     try:
         sys.argv[1]
     except IndexError:
-        print_usage()
+        hp.print_usage()
     if sys.argv[1] == "?":
-        print_usage()
+        hp.print_usage()
     else:
         print "[*] Don't forget to:"
         print colored("[!]Setup port forwarding with 'ipt_setup.sh'!!", 'green')
         print colored("[!]Setup full packet capture with 'tcpdump'!!", 'yellow')
         print "[*] Building ports list for handlers."
-        build_ports_list()
+        hp.build_ports_list()
         print "[*] Starting handlers."
-        build_pot()
+        hp.build_pot()
 
 
 if __name__ == "__main__":
