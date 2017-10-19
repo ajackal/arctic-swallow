@@ -17,13 +17,13 @@ class TCPEchoHandler(SocketServer.StreamRequestHandler):
         try:
             self.DATA = self.request.recv(BUFFER_SIZE).strip()
             event = "[*] {0} wrote: {1}".format(self.client_address[0], self.DATA)
-            write_event_log_event(event)
+            self.write_event_log_event(event)
             print event
             self.request.sendall(self.DATA)
         except Exception as error:
             log_error = "[!] Error receiving data> {0} : {1}".format(self.client_address[0], error)
             print log_error
-            write_error_log_event(str(log_error))
+            self.write_error_log_event(str(log_error))
 
 
 class TelnetHandler(SocketServer.StreamRequestHandler):
@@ -33,14 +33,14 @@ class TelnetHandler(SocketServer.StreamRequestHandler):
         try:
             self.DATA = self.request.recv(BUFFER_SIZE).strip()
             event = "[*] {0} wrote over Port 23: {1}".format(self.client_address[0], self.DATA)
-            write_event_log_event(event)
+            self.write_event_log_event(event)
             response_file = telnet_xp_response_bin
             self.send_response(response_file)
             # self.request.sendall("login: ")
         except Exception as error:
             log_error = "[!] Error receiving data> {0} : {1}".format(self.client_address[0], error)
             print log_error
-            write_error_log_event(str(log_error))
+            self.write_error_log_event(str(log_error))
 
     def send_response(self, response_file):
         """ Send Response
@@ -61,13 +61,13 @@ class NetBiosHandler(SocketServer.StreamRequestHandler):
         try:
             self.DATA = self.request.recv(BUFFER_SIZE).strip()
             event = "[*] {0} wrote over Port 139: {1}".format(self.client_address[0], self.DATA)
-            write_event_log_event(event)
+            self.write_event_log_event(event)
             response_file = netbios_error_bin
             self.send_response(response_file)
         except Exception as error:
             log_error = "[!] Error receiving data> {0} : {1}".format(self.client_address[0], error)
             print log_error
-            write_error_log_event(str(log_error))
+            self.write_error_log_event(str(log_error))
 
     def send_response(self, response_file):
         """ Send Response
@@ -88,13 +88,13 @@ class MsrpcHandler(SocketServer.StreamRequestHandler):
         try:
             self.DATA = self.request.recv(BUFFER_SIZE).strip()
             event = "[*] {0} wrote over Port: {1}".format(self.client_address[0], self.DATA)
-            write_event_log_event(event)
+            self.write_event_log_event(event)
             response_file = msrpc_error_bin
             self.send_response(response_file)
         except Exception as error:
             log_error = "[!] Error receiving data> {0} : {1}".format(self.client_address[0], error)
             print log_error
-            write_error_log_event(str(log_error))
+            self.write_error_log_event(str(log_error))
 
     def send_response(self, response_file):
         """ Send Response
@@ -157,58 +157,47 @@ class SMBHandler(SocketServer.StreamRequestHandler):
         try:
             if pkt_hex.find(smb_header['header']):
                 if pkt_hex.find(pkt_hex_nmap_dialects):
-                    event = "[*] SMB Header - NMAP request for all \
-                            dialects from {0}".format(self.client_address[0])
-                    write_event_log_event(event)
+                    event = "[*] SMB Header - NMAP request for all dialects from {0}".format(self.client_address[0])
+                    self.write_event_log_event(event)
                     self.send_response(smb_response['negotiate_response'])
                 if pkt_hex.find(smb_header['negotiate_ntlm']):
-                    event = "[*] SMB Header - Negotiate Session NTLM \
-                            detected from {0}".format(self.client_address[0])
-                    write_event_log_event(event)
+                    event = "[*] SMB Header - Negotiate Session NTLM detected from {0}".format(self.client_address[0])
+                    self.write_event_log_event(event)
                     self.send_response(smb_response['negotiate_ntlm'])
                 else:
                     # Send response if Header is found.
-                    event = "[*] SMB Header - Negotiate Session was \
-                            detected from {0}".format(self.client_address[0])
-                    write_event_log_event(event)
+                    event = "[*] SMB Header - Negotiate Session was detected from {0}".format(self.client_address[0])
+                    self.write_event_log_event(event)
                     self.send_response(smb_response['negotiate_response'])
             if pkt_hex.find(smb_header['session_setup']):
                 if pkt_hex.find(pkt_hex_nmap_guest_connect):
-                    event = "[*] SMB Header - Session Setup and X \
-                            detected from {0}".format(self.client_address[0])
-                    write_event_log_event(event)
+                    event = "[*] SMB Header - Session Setup and X detected from {0}".format(self.client_address[0])
+                    self.write_event_log_event(event)
                     self.send_response(smb_response['guest_connect'])
                 if pkt_hex.find(smb_header['negotiate_ntlmssp']):
-                    event = "[*] SMB Header - Session Startup NTLMSSP \
-                            detected from {0}".format(self.client_address[0])
-                    write_event_log_event(event)
+                    event = "[*] SMB Header - Session Startup NTLMSSP detected from {0}".format(self.client_address[0])
+                    self.write_event_log_event(event)
                     self.send_response(smb_response['negotiate_ntlmssp'])
                 else:
                     # Send account disabled response to start up request.
-                    event = "[*] SMB Header - Session Setup detected \
-                            from {0}".format(self.client_address[0])
-                    write_event_log_event(event)
+                    event = "[*] SMB Header - Session Setup detected from {0}".format(self.client_address[0])
+                    self.write_event_log_event(event)
                     self.send_response(smb_response['session_startup'])
             if pkt_hex.find(smb_header['account_disabled']):
                 # Send LANMAN info to requester
-                event = "[*] SMB Header - LANMAN information requested \
-                        from {0}".format(self.client_address[0])
-                print event
-                write_event_log_event(event)
+                event = "[*] SMB Header - LANMAN information requested from {0}".format(self.client_address[0])
+                self.write_event_log_event(event)
                 self.send_response(smb_response['account_disabled'])
             if pkt_hex.find(smb_header['session_close']):
                 # Send session close.
-                event = "[*] SMB Header - Session Close detected \
-                        from {0}".format(self.client_address[0])
-                print event
-                write_event_log_event(event)
+                event = "[*] SMB Header - Session Close detected from {0}".format(self.client_address[0])
+                self.write_event_log_event(event)
                 self.send_response(smb_response['session_close'])
             else:
                 self.request.sendall(self.DATA)
         except Exception as error:
-            log_error = "[!] Error receiving data from socket \
-                    with {0} : {1}".format(self.client_address[0], error)
-            write_error_log_event(str(log_error))
+            log_error = "[!] Error receiving data from socket with {0} : {1}".format(self.client_address[0], error)
+            self.write_error_log_event(str(log_error))
 
     def handle(self):
         """ Main methods in the SMB Handler
@@ -232,7 +221,7 @@ class SMBHandler(SocketServer.StreamRequestHandler):
         except Exception as error:
             log_error = "[!] Error receiving data from socket \
                     with {0} : {1}".format(self.client_address[0], error)
-            write_error_log_event(str(log_error))
+            self.write_error_log_event(str(log_error))
 
     def send_response(self, response_file):
         """ Send Response
@@ -280,90 +269,84 @@ class HoneyPotHandler(Thread):
                 except IndexError:
                     listening_host = 'localhost'
             server = SocketServer.TCPServer((listening_host, int(self.port)), handler_type)
-            event = "[*] {0} handler started on {1}:{2}".format(str(handler_type),\
-                                                                listening_host, self.port)
-            write_event_log_event(event)
+            event = "[*] {0} handler started on {1}:{2}".format(str(handler_type), listening_host, self.port)
+            self.write_event_log_event(event)
             server.serve_forever()
         except Exception as error:
             error = "[!] There was an error establishing a handler because {0}".format(error)
-            write_error_log_event(error)
+            self.write_error_log_event(error)
 
+    def build_ports_list(self):
+        """Build Ports List
+        1. reads input file given
+        2. writes the ports to a list
+        3. logs the events
+        """
+        ifile = str(sys.argv[1])
 
-def build_ports_list():
-    """Build Ports List
-    1. reads input file given
-    2. writes the ports to a list
-    3. logs the events
-    """
-    ifile = str(sys.argv[1])
+        with open(ifile, 'r') as i:
+            global ports
+            ports = i.readlines()
+            ports = [x.strip('\n') for x in ports]
+        event = "[*] will start listening on: {0}".format(ports)
+        self.write_event_log_event(event)
+        return ports
 
-    with open(ifile, 'r') as i:
-        global ports
-        ports = i.readlines()
-        ports = [x.strip('\n') for x in ports]
-    event = "[*] will start listening on: {0}".format(ports)
-    write_event_log_event(event)
-    return ports
+    def build_pot(self):
+        """ Build Pot
+        This function builds the threads that will make the pot.
+        It will also adjust privileged ports to unprivileged ports.
+        Starts and Joins threads.
+        """
+        thread_list = []
+        for port in ports:
+            if int(port) < 1024:
+                if int(port) < 100:
+                    port = "80" + port
+                else:
+                    port = "8" + port
+            event = "[*] Starting handler on port {0}".format(port)
+            self.write_event_log_event(event)
+            new_thread = HoneyPotHandler(port)
+            thread_list.append(new_thread)
+        for thread in thread_list:
+            thread.start()
+        for thread in thread_list:
+            thread.join()
 
+    @staticmethod
+    def write_event_log_event(event):
+        """ Writes all events to 'event.log' with date & time. """
+        log_time = str(datetime.now())
+        print event
+        log_file = "event.log"
+        with open(log_file, 'a') as event_log:
+            event_log.write(log_time + event + "\n")
 
-def build_pot():
-    """ Build Pot
-    This function builds the threads that will make the pot.
-    It will also adjust privileged ports to unprivileged ports.
-    Starts and Joins threads.
-    """
-    thread_list = []
-    for port in ports:
-        if int(port) < 1024:
-            if int(port) < 100:
-                port = "80" + port
-            else:
-                port = "8" + port
-        event = "[*] Starting handler on port {0}".format(port)
-        write_event_log_event(event)
-        new_thread = HoneyPotHandler(port)
-        thread_list.append(new_thread)
-    for thread in thread_list:
-        thread.start()
-    for thread in thread_list:
-        thread.join()
+    @staticmethod
+    def write_error_log_event(error):
+        """ Writes all errors to 'error.log' with date & time. """
+        log_time = str(datetime.now())
+        print error
+        log_file = "error.log"
+        with open(log_file, 'a') as error_log:
+            error_log.write(log_time + error + "\n")
 
-
-def write_event_log_event(event):
-    """ Writes all events to 'event.log' with date & time. """
-    log_time = str(datetime.now())
-    print event
-    log_file = "event.log"
-    with open(log_file, 'a') as event_log:
-        event_log.write(log_time + event + "\n")
-
-
-def write_error_log_event(error):
-    """ Writes all errors to 'error.log' with date & time. """
-    log_time = str(datetime.now())
-    print error
-    log_file = "error.log"
-    with open(log_file, 'a') as error_log:
-        error_log.write(log_time + error + "\n")
-
-
-def print_usage():
-    """ Prints the program useage when:
-        1. No argument for the ports list is given.
-        2. User inputs "?" option.
-    """
-    print "arctic-swallow.py {0} {1}".format(colored('<ports.txt>', 'red'),
-                                            colored('<IP-address>', 'yellow'))
-    print "\t{0} = text file with ports listed, one per line".format(colored('<ports.txt>', 'red'))
-    print "\t[!] Don't forget to set up port forwarding with {0}".format(colored("'ipt_config.sh'",
-                                                                                'green'))
-    print "\t[!] Don't forget to set up {0} for full packet capture!".format(colored("TCPDUMP",
-                                                                             'yellow'))
-    # don't think we need this options.
-    # iptables will forward from all IPs to localhost with one honeypot running
-    # print "\t{0} = IP Address to listen on for \
-    #        non-privileged ports.".format(colored('<IP-address>', 'yellow'))
-    exit(0)
+    @staticmethod
+    def print_usage():
+        """ Prints the program usage when:
+            1. No argument for the ports list is given.
+            2. User inputs "?" option.
+        """
+        print "arctic-swallow.py {0} {1}".format(colored('<ports.txt>', 'red'), colored('<IP-address>', 'yellow'))
+        print "\t{0} = text file with ports listed, one per line".format(colored('<ports.txt>', 'red'))
+        print "\t[!] Don't forget to set up port forwarding with {0}".format(colored("'ipt_config.sh'", 'green'))
+        print "\t[!] Don't forget to set up {0} for full packet capture!".format(colored("TCPDUMP", 'yellow'))
+        # don't think we need this options.
+        # iptables will forward from all IPs to localhost with one honeypot running
+        # print "\t{0} = IP Address to listen on for \
+        #        non-privileged ports.".format(colored('<IP-address>', 'yellow'))
+        exit(0)
 
 
 def main():

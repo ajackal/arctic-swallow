@@ -23,7 +23,6 @@ class TCPEchoHandler(SocketServer.StreamRequestHandler):
             print log_error
             write_error_log_event(str(log_error))
 
-
     def check_hex(self):
         try:
             self.DATA = self.request.recv(BUFFER_SIZE).strip()
@@ -42,7 +41,6 @@ class InterceptorHandler(Thread):
     def __init__(self, port):
         Thread.__init__(self)
         self.port = port
-
 
     def run(self):
         # if self.port == '8445':
@@ -123,6 +121,7 @@ def main():
         read_domain_list()
         print "[*] Starting interceptor."
         setup_interceptor()
+
 
 if __name__ == "__main__":
     main()
