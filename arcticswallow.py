@@ -282,7 +282,7 @@ class HoneyPotHandler(Thread):
 # TODO: fix broken logging method dependency.
 class HoneyPot:
     def __init__(self):
-        self.x = 0
+        self.ports = []
 
     def build_ports_list(self):
         """Build Ports List
@@ -290,15 +290,14 @@ class HoneyPot:
         2. writes the ports to a list
         3. logs the events
         """
-        ifile = str(sys.argv[1])
+        ports_list_file = str(sys.argv[1])
 
-        with open(ifile, 'r') as i:
-            global ports
-            ports = i.readlines()
-            ports = [x.strip('\n') for x in ports]
-        event = "[*] will start listening on: {0}".format(ports)
+        with open(ports_list_file, 'r') as i:
+            self.ports = i.readlines()
+            self.ports = [x.strip('\n') for x in self.ports]
+        event = "[*] will start listening on: {0}".format(self.ports)
         self.write_event_log_event(event)
-        return ports
+        return self.ports
 
     def build_pot(self):
         """ Build Pot
@@ -307,7 +306,7 @@ class HoneyPot:
         Starts and Joins threads.
         """
         thread_list = []
-        for port in ports:
+        for port in self.ports:
             if int(port) < 1024:
                 if int(port) < 100:
                     port = "80" + port
