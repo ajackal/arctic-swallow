@@ -10,7 +10,7 @@ BUFFER_SIZE = 1024
 
 
 class SuperHandler(SocketServer.StreamRequestHandler):
-
+    """ Defines a super class that has the logging events and sends the correct response file. """
     def write_event_log_event(self, event):
         """ Writes all events to 'event.log' with date & time. """
         log_time = str(datetime.now())
@@ -126,6 +126,7 @@ class SMBHandler(SuperHandler):
                       "negotiate_ntlmssp": "\x4e\x54\x4c\x4d\x53\x53\x50\x00",
                       "session_close": "\xff\x53\x4d\x42\x74\x00\x00\x00\x00"
                       }
+        # TODO: Clean up the SMB request/response method.
         # SMB Header NMAP request all Dialects:
         smb_nmap_all_dialects = "pcaps/smb_nmap_all_dialects"
         with open(smb_nmap_all_dialects, 'rb') as pkt_capture:
@@ -237,7 +238,7 @@ class SMBHandler(SuperHandler):
 
 
 class HoneyPotHandler(Thread):
-    """HoneyPotHandler
+    """ HoneyPotHandler
     1. reads the port as an argument
     2. determines which handler to run based of the port
     3. determines what address to listen on
@@ -278,6 +279,7 @@ class HoneyPotHandler(Thread):
             self.write_error_log_event(error)
 
 
+# TODO: fix broken logging method dependency.
 class HoneyPot:
     def __init__(self):
         self.x = 0
