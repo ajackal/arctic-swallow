@@ -9,12 +9,40 @@ import colorama
 BUFFER_SIZE = 1024
 
 
-class TCPEchoHandler(SocketServer.StreamRequestHandler, HoneyPot):
+class SuperHandler(SocketServer.StreamRequestHandler):
+
+    def write_event_log_event(self, event):
+        """ Writes all events to 'event.log' with date & time. """
+        log_time = str(datetime.now())
+        print event
+        log_file = "event.log"
+        with open(log_file, 'a') as event_log:
+            event_log.write(log_time + event + "\n")
+
+    def write_error_log_event(self, error):
+        """ Writes all errors to 'error.log' with date & time. """
+        log_time = str(datetime.now())
+        print error
+        log_file = "error.log"
+        with open(log_file, 'a') as error_log:
+            error_log.write(log_time + error + "\n")
+
+    def send_response(self, response_file):
+        """ Send Response
+        1. opens the correct response_file
+        2. reads binary to buffer
+        3. sends the response to the client
+        """
+        with open(response_file, 'rb') as pkt_capture:
+            response = pkt_capture.read()
+        self.request.sendall(response)
+        print "[*] Response packet sent."
+
+
+class TCPEchoHandler(SuperHandler):
     """ TCP Echo Handler listens on any port not previously listed.
     It simply echos any data that it receives back to the client.
     """
-    def __init__(self):
-        super(TCPEchoHandler, self).__init__()
 
     def handle(self):
         try:
@@ -29,7 +57,7 @@ class TCPEchoHandler(SocketServer.StreamRequestHandler, HoneyPot):
             self.write_error_log_event(str(log_error))
 
 
-class TelnetHandler(SocketServer.StreamRequestHandler):
+class TelnetHandler(SuperHandler):
     """ Telnet Handler listens on port 8023 for telnet requests & mimics an XP telnet service. """
     def handle(self):
         telnet_xp_response_bin = "pcaps/telnet_xp_response"
@@ -45,19 +73,8 @@ class TelnetHandler(SocketServer.StreamRequestHandler):
             print log_error
             self.write_error_log_event(str(log_error))
 
-    def send_response(self, response_file):
-        """ Send Response
-        1. opens the correct response_file
-        2. reads binary to buffer
-        3. sends the response to the client
-        """
-        with open(response_file, 'rb') as pkt_capture:
-            response = pkt_capture.read()
-        self.request.sendall(response)
-        print "[*] Response packet sent."
 
-
-class NetBiosHandler(SocketServer.StreamRequestHandler):
+class NetBiosHandler(SuperHandler):
     """ NetBios Handler listens for and sends reponses for NetBios protocol. """
     def handle(self):
         netbios_error_bin = "pcaps/netbios_error"
@@ -72,19 +89,8 @@ class NetBiosHandler(SocketServer.StreamRequestHandler):
             print log_error
             self.write_error_log_event(str(log_error))
 
-    def send_response(self, response_file):
-        """ Send Response
-        1. opens the correct response_file
-        2. reads binary to buffer
-        3. sends the response to the client
-        """
-        with open(response_file, 'rb') as pkt_capture:
-            response = pkt_capture.read()
-        self.request.sendall(response)
-        print "[*] Response packet sent."
 
-
-class MsrpcHandler(SocketServer.StreamRequestHandler):
+class MsrpcHandler(SuperHandler):
     """ MSRPC Handler handles any port defined in the MSRPC port list """
     def handle(self):
         msrpc_error_bin = "pcaps/msrpc_error"
@@ -99,20 +105,10 @@ class MsrpcHandler(SocketServer.StreamRequestHandler):
             print log_error
             self.write_error_log_event(str(log_error))
 
-    def send_response(self, response_file):
-        """ Send Response
-        1. opens the correct response_file
-        2. reads binary to buffer
-        3. sends the response to the client
-        """
-        with open(response_file, 'rb') as pkt_capture:
-            response = pkt_capture.read()
-        self.request.sendall(response)
-        print "[*] Response packet sent."
 
-
-class SMBHandler(SocketServer.StreamRequestHandler):
+class SMBHandler(SuperHandler):
     """ SMB Handler binds to port 8445 for to run unprivileged. """
+
     def check_smb_header(self, pkt_hex):
         """ SMB HEADER
         Server Component: SMB
@@ -129,7 +125,7 @@ class SMBHandler(SocketServer.StreamRequestHandler):
                       "account_disabled": "\xff\x53\x4d\x42\x73\x72\x00\x00\xc0",
                       "negotiate_ntlmssp": "\x4e\x54\x4c\x4d\x53\x53\x50\x00",
                       "session_close": "\xff\x53\x4d\x42\x74\x00\x00\x00\x00"
-                     }
+                      }
         # SMB Header NMAP request all Dialects:
         smb_nmap_all_dialects = "pcaps/smb_nmap_all_dialects"
         with open(smb_nmap_all_dialects, 'rb') as pkt_capture:
@@ -324,23 +320,7 @@ class HoneyPot:
         for thread in thread_list:
             thread.join()
 
-    def write_event_log_event(event):
-        """ Writes all events to 'event.log' with date & time. """
-        log_time = str(datetime.now())
-        print event
-        log_file = "event.log"
-        with open(log_file, 'a') as event_log:
-            event_log.write(log_time + event + "\n")
-
-    def write_error_log_event(error):
-        """ Writes all errors to 'error.log' with date & time. """
-        log_time = str(datetime.now())
-        print error
-        log_file = "error.log"
-        with open(log_file, 'a') as error_log:
-            error_log.write(log_time + error + "\n")
-
-    def print_usage():
+    def print_usage(self):
         """ Prints the program usage when:
             1. No argument for the ports list is given.
             2. User inputs "?" option.
