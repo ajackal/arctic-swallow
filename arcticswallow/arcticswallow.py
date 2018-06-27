@@ -20,16 +20,18 @@ class HoneyPotHandler(Thread):
         self.msrpc_ports = ['8135', '49152', '49153', '49154', '49155']
 
     def run(self):
-        if self.port == '8445':
-            handler_type = SMBHandler
-        elif self.port == '8023':
-            handler_type = TelnetHandler
-        elif self.port in self.msrpc_ports:
-            handler_type = MsrpcHandler
-        elif self.port == '8139':
-            handler_type = NetBiosHandler
-        else:
-            handler_type = TCPEchoHandler
+        # Enabling TCPEchoHandler only for right now
+        # if self.port == '8445':
+        #     handler_type = SMBHandler
+        # elif self.port == '8023':
+        #     handler_type = TelnetHandler
+        # elif self.port in self.msrpc_ports:
+        #     handler_type = MsrpcHandler
+        # elif self.port == '8139':
+        #     handler_type = NetBiosHandler
+        # else:
+        #     handler_type = TCPEchoHandler
+        handler_type = TCPEchoHandler
         try:
             if int(self.port) < 1024:
                 listening_host = 'localhost'
