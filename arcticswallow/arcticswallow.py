@@ -3,6 +3,7 @@ from threading import Thread
 from termcolor import colored
 import colorama
 from handlers import *
+from logger import Logger
 
 
 class HoneyPotHandler(Thread):
@@ -41,17 +42,18 @@ class HoneyPotHandler(Thread):
                 except IndexError:
                     listening_host = 'localhost'
             server = SocketServer.TCPServer((listening_host, int(self.port)), handler_type)
-            event = "[*] {0} handler started on {1}:{2}".format(str(handler_type), listening_host, self.port)
-            self.write_event_log_event(event)
+            event = "{0} handler started on {1}:{2}".format(str(handler_type), listening_host, self.port)
+            logger.write_event_log_event(event)
             server.serve_forever()
         except Exception as error:
             error = "[!] There was an error establishing a handler because {0}".format(error)
-            self.write_error_log_event(error)
+            logger.write_error_log_event(error)
 
 
 # TODO: fix broken logging method dependency.
 class HoneyPot:
     def __init__(self):
+        self.logger = Logger()
         self.ports = []
 
     def build_ports_list(self):
@@ -66,7 +68,7 @@ class HoneyPot:
             self.ports = i.readlines()
             self.ports = [x.strip('\n') for x in self.ports]
         event = "[*] will start listening on: {0}".format(self.ports)
-        self.write_event_log_event(event)
+        self.logger.write_log_file(event)
         return self.ports
 
     def build_pot(self):
