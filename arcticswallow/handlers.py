@@ -35,7 +35,7 @@ class SuperHandler(SocketServer.StreamRequestHandler):
         self.request.sendall(response)
         event = "Response packet sent."
         logging.info(event)
-        print event
+        print('[*] {0}\n'.format(event))
 
 
 class TCPEchoHandler(SuperHandler):
@@ -48,12 +48,12 @@ class TCPEchoHandler(SuperHandler):
             self.DATA = self.request.recv(BUFFER_SIZE).strip()
             event = "{0} wrote: {1}".format(self.client_address[0], self.DATA)
             logging.warning(event)
-            print event
+            print('[!] {0}\n'.format(event))
             self.request.sendall(self.DATA)
         except Exception as error:
             log_error = "Error receiving data> {0} : {1}".format(self.client_address[0], error)
-            print log_error
             logging.error(str(log_error))
+            print('[!] {0}\n'.format(log_error))
 
 
 # TODO: revise logging

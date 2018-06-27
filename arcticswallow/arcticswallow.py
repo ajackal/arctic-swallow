@@ -43,12 +43,14 @@ class HoneyPotHandler(Thread):
                 except IndexError:
                     listening_host = 'localhost'
             server = SocketServer.TCPServer((listening_host, int(self.port)), handler_type)
-            event = "{0} handler started on {1}:{2}".format(str(handler_type), listening_host, self.port)
+            event = "{0} started on {1}:{2}".format(str(handler_type), listening_host, self.port)
             logging.info(event)
+            print('[*] {0}\n'.format(event))
             server.serve_forever()
         except Exception as error:
             error = "There was an error establishing a handler because {0}".format(error)
             logging.error(error)
+            print('[!] {0}\n'.format(event))
 
 
 # TODO: fix broken logging method dependency.
@@ -70,6 +72,7 @@ class HoneyPot:
             self.ports = [x.strip('\n') for x in self.ports]
         event = "Will start listening on: {0}".format(self.ports)
         logging.info(event)
+        print('[*] {0}\n'.format(event))
         return self.ports
 
     def build_pot(self):
@@ -87,6 +90,7 @@ class HoneyPot:
                     port = "8" + port
             event = "Starting handler on port {0}".format(port)
             logging.info(event)
+            print('[*] {0}\n'.format(event))
             new_thread = HoneyPotHandler(port)
             thread_list.append(new_thread)
         for thread in thread_list:
