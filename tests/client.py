@@ -3,12 +3,12 @@ import sys
 from itertools import product
 
 # builds key list
-characters_to_use = "0123456789"
-keys_to_try = product(characters_to_use, repeat=2)
-
-for key_pair in keys_to_try:
-    key = key_pair[0] + key_pair[1]
-    # print key
+# characters_to_use = "0123456789"
+# keys_to_try = product(characters_to_use, repeat=2)
+#
+# for key_pair in keys_to_try:
+#     key = key_pair[0] + key_pair[1]
+#      print key
 
 # define ip address and port to use
 ip_addr = 'localhost'
