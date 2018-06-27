@@ -7,7 +7,7 @@ class Logger:
     def __init__(self):
         """ Setup logging file path and formatting """
         self.default_filepath = os.path.dirname(os.getcwd())
-        self.log_name = "ARCTICSWALLOW_DEBUG" + str(date.today()) + ".log"
+        self.log_name = "ARCTICSWALLOW_DEBUG_" + str(date.today()) + ".log"
         self.log_name = os.path.join(self.default_filepath, "logs", self.log_name)
         log_directory = os.path.dirname(self.log_name)
         if not os.path.exists(log_directory):
