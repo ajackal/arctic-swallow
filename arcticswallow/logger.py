@@ -12,7 +12,7 @@ class Logger:
         log_directory = os.path.dirname(self.log_name)
         if not os.path.exists(log_directory):
             os.mkdir(log_directory)
-        logging.basicConfig(filename=self.log_name, format='%(asctime)s\t%(levelname)s:\t%(message)s',
+        logging.basicConfig(filename=self.log_name, format='%(asctime)s %(levelname)s: %(message)s',
                             level=logging.DEBUG)
 
     # def write_log_file(self, event):
