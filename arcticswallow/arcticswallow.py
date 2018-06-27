@@ -3,6 +3,7 @@ from threading import Thread
 from termcolor import colored
 import colorama
 from handlers import *
+import logging
 from logger import Logger
 
 
@@ -43,11 +44,11 @@ class HoneyPotHandler(Thread):
                     listening_host = 'localhost'
             server = SocketServer.TCPServer((listening_host, int(self.port)), handler_type)
             event = "{0} handler started on {1}:{2}".format(str(handler_type), listening_host, self.port)
-            logger.write_event_log_event(event)
+            logging.info(event)
             server.serve_forever()
         except Exception as error:
-            error = "[!] There was an error establishing a handler because {0}".format(error)
-            logger.write_error_log_event(error)
+            error = "There was an error establishing a handler because {0}".format(error)
+            logging.error(error)
 
 
 # TODO: fix broken logging method dependency.
@@ -67,8 +68,8 @@ class HoneyPot:
         with open(ports_list_file, 'r') as i:
             self.ports = i.readlines()
             self.ports = [x.strip('\n') for x in self.ports]
-        event = "[*] will start listening on: {0}".format(self.ports)
-        self.logger.write_log_file(event)
+        event = "Will start listening on: {0}".format(self.ports)
+        logging.info(event)
         return self.ports
 
     def build_pot(self):
@@ -84,8 +85,8 @@ class HoneyPot:
                     port = "80" + port
                 else:
                     port = "8" + port
-            event = "[*] Starting handler on port {0}".format(port)
-            self.write_event_log_event(event)
+            event = "Starting handler on port {0}".format(port)
+            logging.info(event)
             new_thread = HoneyPotHandler(port)
             thread_list.append(new_thread)
         for thread in thread_list:
@@ -117,6 +118,7 @@ def main():
         a. modifies any privileged port to unprivileged port.
     4. builds and runs the honey pot.
     """
+    Logger()
     colorama.init()
     hp = HoneyPot()
     try:

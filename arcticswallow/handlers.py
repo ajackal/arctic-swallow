@@ -1,27 +1,28 @@
 import SocketServer
 from datetime import datetime
 import binascii
+import logging
 
 BUFFER_SIZE = 1024
 
 
 class SuperHandler(SocketServer.StreamRequestHandler):
     """ Defines a super class that has the logging events and sends the correct response file. """
-    def write_event_log_event(self, event):
-        """ Writes all events to 'event.log' with date & time. """
-        log_time = str(datetime.now())
-        print event
-        log_file = "event.log"
-        with open(log_file, 'a') as event_log:
-            event_log.write(log_time + event + "\n")
-
-    def write_error_log_event(self, error):
-        """ Writes all errors to 'error.log' with date & time. """
-        log_time = str(datetime.now())
-        print error
-        log_file = "error.log"
-        with open(log_file, 'a') as error_log:
-            error_log.write(log_time + error + "\n")
+    # def write_event_log_event(self, event):
+    #     """ Writes all events to 'event.log' with date & time. """
+    #     log_time = str(datetime.now())
+    #     print event
+    #     log_file = "event.log"
+    #     with open(log_file, 'a') as event_log:
+    #         event_log.write(log_time + event + "\n")
+    #
+    # def write_error_log_event(self, error):
+    #     """ Writes all errors to 'error.log' with date & time. """
+    #     log_time = str(datetime.now())
+    #     print error
+    #     log_file = "error.log"
+    #     with open(log_file, 'a') as error_log:
+    #         error_log.write(log_time + error + "\n")
 
     def send_response(self, response_file):
         """ Send Response
@@ -32,7 +33,9 @@ class SuperHandler(SocketServer.StreamRequestHandler):
         with open(response_file, 'rb') as pkt_capture:
             response = pkt_capture.read()
         self.request.sendall(response)
-        print "[*] Response packet sent."
+        event = "Response packet sent."
+        logging.info(event)
+        print event
 
 
 class TCPEchoHandler(SuperHandler):
@@ -43,16 +46,17 @@ class TCPEchoHandler(SuperHandler):
     def handle(self):
         try:
             self.DATA = self.request.recv(BUFFER_SIZE).strip()
-            event = "[*] {0} wrote: {1}".format(self.client_address[0], self.DATA)
-            self.write_event_log_event(event)
+            event = "{0} wrote: {1}".format(self.client_address[0], self.DATA)
+            logging.warning(event)
             print event
             self.request.sendall(self.DATA)
         except Exception as error:
-            log_error = "[!] Error receiving data> {0} : {1}".format(self.client_address[0], error)
+            log_error = "Error receiving data> {0} : {1}".format(self.client_address[0], error)
             print log_error
-            self.write_error_log_event(str(log_error))
+            logging.error(str(log_error))
 
 
+# TODO: revise logging
 class TelnetHandler(SuperHandler):
     """ Telnet Handler listens on port 8023 for telnet requests & mimics an XP telnet service. """
     def handle(self):
