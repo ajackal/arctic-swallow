@@ -51,7 +51,10 @@ class TCPEchoHandler(SuperHandler):
             print('[!] {0}\n'.format(event))
             self.request.sendall(self.DATA)
         except Exception as error:
-            log_error = "Error receiving data> {0} : {1}".format(self.client_address[0], error)
+            if error == "[Errno 104] Connection reset by peer":
+                log_error = "Premature Reset sent by peer; potential half-open TCP port scan by {0}".format(self.client_address[0])
+            else:
+                log_error = "Error receiving data> {0} : {1}".format(self.client_address[0], error)
             logging.error(str(log_error))
             print('[!] {0}\n'.format(log_error))
 
