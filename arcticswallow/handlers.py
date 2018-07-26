@@ -1,4 +1,4 @@
-import SocketServer
+import socketserver
 from datetime import datetime
 import binascii
 import logging
@@ -6,12 +6,12 @@ import logging
 BUFFER_SIZE = 1024
 
 
-class SuperHandler(SocketServer.StreamRequestHandler):
+class SuperHandler(socketserver.StreamRequestHandler):
     """ Defines a super class that has the logging events and sends the correct response file. """
     # def write_event_log_event(self, event):
     #     """ Writes all events to 'event.log' with date & time. """
     #     log_time = str(datetime.now())
-    #     print event
+    #     print(event)
     #     log_file = "event.log"
     #     with open(log_file, 'a') as event_log:
     #         event_log.write(log_time + event + "\n")
@@ -19,7 +19,7 @@ class SuperHandler(SocketServer.StreamRequestHandler):
     # def write_error_log_event(self, error):
     #     """ Writes all errors to 'error.log' with date & time. """
     #     log_time = str(datetime.now())
-    #     print error
+    #     print(error
     #     log_file = "error.log"
     #     with open(log_file, 'a') as error_log:
     #         error_log.write(log_time + error + "\n")
@@ -70,7 +70,7 @@ class TelnetHandler(SuperHandler):
             # self.request.sendall("login: ")
         except Exception as error:
             log_error = "[!] Error receiving data> {0} : {1}".format(self.client_address[0], error)
-            print log_error
+            print(log_error)
             self.write_error_log_event(str(log_error))
 
 
@@ -86,7 +86,7 @@ class NetBiosHandler(SuperHandler):
             self.send_response(response_file)
         except Exception as error:
             log_error = "[!] Error receiving data> {0} : {1}".format(self.client_address[0], error)
-            print log_error
+            print(log_error)
             self.write_error_log_event(str(log_error))
 
 
@@ -102,7 +102,7 @@ class MsrpcHandler(SuperHandler):
             self.send_response(response_file)
         except Exception as error:
             log_error = "[!] Error receiving data> {0} : {1}".format(self.client_address[0], error)
-            print log_error
+            print(log_error)
             self.write_error_log_event(str(log_error))
 
 
@@ -186,13 +186,13 @@ class SMBHandler(SuperHandler):
             if pkt_hex.find(smb_header['account_disabled']):
                 # Send LANMAN info to requester
                 event = "[*] SMB Header - LANMAN information requested from {0}".format(self.client_address[0])
-                print event
+                print(event)
                 self.write_event_log_event(event)
                 self.send_response(smb_response['account_disabled'])
             if pkt_hex.find(smb_header['session_close']):
                 # Send session close.
                 event = "[*] SMB Header - Session Close detected from {0}".format(self.client_address[0])
-                print event
+                print(event)
                 self.write_event_log_event(event)
                 self.send_response(smb_response['session_close'])
             else:

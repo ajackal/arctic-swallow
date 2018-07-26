@@ -50,7 +50,7 @@ class HoneyPotHandler(Thread):
         except Exception as error:
             error = "There was an error establishing a handler because {0}".format(error)
             logging.error(error)
-            print('[!] {0}\n'.format(event))
+            print('[!] {0}\n'.format(error))
 
 
 # TODO: fix broken logging method dependency.
@@ -103,13 +103,13 @@ class HoneyPot:
             1. No argument for the ports list is given.
             2. User inputs "?" option.
         """
-        print "arctic-swallow.py {0} {1}".format(colored('<ports.txt>', 'red'), colored('<IP-address>', 'yellow'))
-        print "\t{0} = text file with ports listed, one per line".format(colored('<ports.txt>', 'red'))
-        print "\t[!] Don't forget to set up port forwarding with {0}".format(colored("'ipt_config.sh'", 'green'))
-        print "\t[!] Don't forget to set up {0} for full packet capture!".format(colored("TCPDUMP", 'yellow'))
+        print("arctic-swallow.py {0} {1}".format(colored('<ports.txt>', 'red'), colored('<IP-address>', 'yellow')))
+        print("\t{0} = text file with ports listed, one per line".format(colored('<ports.txt>', 'red')))
+        print("\t[!] Don't forget to set up port forwarding with {0}".format(colored("'ipt_config.sh'", 'green')))
+        print("\t[!] Don't forget to set up {0} for full packet capture!".format(colored("TCPDUMP", 'yellow')))
         # don't think we need this options.
         # iptables will forward from all IPs to localhost with one honeypot running
-        # print "\t{0} = IP Address to listen on for \
+        # print("\t{0} = IP Address to listen on for \
         #        non-privileged ports.".format(colored('<IP-address>', 'yellow'))
         exit(0)
 
@@ -132,12 +132,12 @@ def main():
     if sys.argv[1] == "?":
         hp.print_usage()
     else:
-        print "[*] Don't forget to:"
-        print colored("[!]Setup port forwarding with 'ipt_setup.sh'!!", 'green')
-        print colored("[!]Setup full packet capture with 'tcpdump'!!", 'yellow')
-        print "[*] Building ports list for handlers."
+        print("[*] Don't forget to:")
+        print(colored("[!]Setup port forwarding with 'ipt_setup.sh'!!", 'green'))
+        print(colored("[!]Setup full packet capture with 'tcpdump'!!", 'yellow'))
+        print("[*] Building ports list for handlers.")
         hp.build_ports_list()
-        print "[*] Starting handlers."
+        print("[*] Starting handlers.")
         hp.build_pot()
 
 
